@@ -22,23 +22,23 @@ CONFIGURATIONS = YAML.load_file('config.yaml')
 
 Vagrant.configure(2) do |config|
   # loop through each server configuration specification
-  CONFIGURATIONS['servers'].each do |server|
+  CONFIGURATIONS['boxes'].each do |box|
     # define the virtual machine configurations
-    config.vm.define server['hostname'] do |server_config|
+    config.vm.define box['output_box_name'] do |server_config|
       # define the base Vagrant box to be used
-      server_config.vm.box = server['box']
+      server_config.vm.box = box['base_box']
       # define the virtual machine host name
-      server_config.vm.host_name = server['hostname']
+      server_config.vm.host_name = box['output_box_name']
 
       # setup network configurations for the virtual machine
-      # use private networking (recommended for multi-machine scenarios)
-      server_config.vm.network :private_network, ip: server['ip']
+      # use private networking
+      server_config.vm.network :private_network, ip: box['ip']
 
-      memory = server['ram'] ? server['ram'] : 2048
-      cpu = server['cpu'] ? server['cpu'] : 1
+      memory = 2048
+      cpu = 1
       # setup VirtualBox specific provider configurations
       server_config.vm.provider :virtualbox do |vb|
-        vb.name = server['hostname']
+        vb.name = box['output_box_name']
         vb.check_guest_additions = false
         vb.functional_vboxsf = false
         vb.gui = false
@@ -47,12 +47,12 @@ Vagrant.configure(2) do |config|
       end
 
       # configure shell provisioner
-      if server['provisioner_script_args']
+      if box['provisioner_script_args']
         # if argument(s) have been defined to be passed to the shell script
-        server_config.vm.provision "shell", path: server["provisioner_script"], args: server["provisioner_script_args"]
+        server_config.vm.provision "shell", path: box["provisioner_script"], args: box["provisioner_script_args"]
       else
         # if no argument(s) have been defined to be passed to the shell script
-        server_config.vm.provision "shell", path: server["provisioner_script"]
+        server_config.vm.provision "shell", path: box["provisioner_script"]
       end
     end
   end

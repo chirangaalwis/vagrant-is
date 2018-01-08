@@ -12,27 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
----
-servers:
- -
-   hostname: db
-   box: hashicorp/precise64
-   box: ubuntu/trusty64
-   ip: 192.168.100.2
-   ram: 2048
-   cpu: 1
-   provisioner_script: mysql/db_provisioner.sh
-  -
-    hostname: identity-server
-    box: ubuntu/trusty64
-    ip: 192.168.100.3
-    ram: 2048
-    cpu: 1
-    provisioner_script: identity-server/scripts/product_provisioner.sh
-  -
-    hostname: identity-server-analytics
-    box: ubuntu/trusty64
-    ip: 192.168.100.4
-    ram: 2048
-    cpu: 1
-    provisioner_script: identity-server-analytics/scripts/product_provisioner.sh
+# -*- mode: ruby -*-
+
+require 'yaml'
+require 'fileutils'
+
+# load server configurations from YAML file
+CONFIGURATIONS = YAML.load_file('config.yaml')
+# create an empty array to hold box names
+boxnames=Array.new
+
+# loop through each box specification
+CONFIGURATIONS['boxes'].each do |box|
+  # add box name to array of box names
+  boxnames.push box['output_box_name']
+end
+
+puts boxnames

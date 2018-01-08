@@ -16,8 +16,11 @@
 # limitations under the License
 # ------------------------------------------------------------------------
 
+# This script acts as the machine provisioner during the Vagrant box build process for MySQL database service.
+
 # set variables
-DBPASSWD=wso2carbon
+DB_PASSWORD=wso2carbon
+WORKING_DIRECTORY=/home/vagrant
 
 # set and export environment variables
 export DEBIAN_FRONTEND=noninteractive
@@ -25,9 +28,9 @@ export LC_CTYPE=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 
 # set MySQL root password configuration using debconf
-echo debconf mysql-server/root_password password $DBPASSWD | \
+echo debconf mysql-server/root_password password $DB_PASSWORD | \
   sudo debconf-set-selections
-echo debconf mysql-server/root_password_again password $DBPASSWD | \
+echo debconf mysql-server/root_password_again password $DB_PASSWORD | \
   sudo debconf-set-selections
 
 # run package updates
@@ -45,8 +48,17 @@ mysql -uroot -pwso2carbon -e "grant all privileges on *.* to 'root'@'%' with gra
 mysql -uroot -pwso2carbon -e "flush privileges;"
 
 # set the bind address from loopback address to all IPv4 addresses of the host
-#sed -i -e 's/127.0.0.1/0.0.0.0/' /etc/mysql/mysql.conf.d/mysqld.cnf
 sed -i -e 's/127.0.0.1/0.0.0.0/' /etc/mysql/my.cnf
 
 # restart the MySQL server
 service mysql restart
+
+# remove the APT cache
+apt-get clean
+
+# zero out the drive
+dd if=/dev/zero of=/EMPTY bs=1M
+rm -f /EMPTY
+
+# clear the bash history and exit
+cat /dev/null > ${WORKING_DIRECTORY}/.bash_history && history -c
